@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
+	"unicode/utf8"
 )
 
 func main() {
@@ -20,12 +22,16 @@ func main() {
 	}
 	sliseOfSub := make(map[string]string)
 	sliseOfRealise := make(map[string]string)
+	ostMap := make(map[string]string)
+	ostMapUs := make(map[string]string)
+	obyazMap := make(map[string]string)
+	obyazMapUs := make(map[string]string)
 	sheet := xlFile.Sheets[0] // Выберите лист (например, первый лист)
 	row := sheet.Rows[6]      // Выберите строку (например, первая строка)
 	cell := row.Cells[1]
 	rowDate := sheet.Rows[8]
 	cellDate := rowDate.Cells[1]
-	rowAgree := sheet.Rows[51]
+	rowAgree := sheet.Rows[52]
 	cellAgree := rowAgree.Cells[2]
 	startRowRealise := 13
 loop:
@@ -38,7 +44,7 @@ loop:
 					log.Println(err)
 					continue
 				}
-				if value == "Итого по договорам:" {
+				if value == "Итого по договорам:" || value == "" {
 					break loop
 
 				}
@@ -54,10 +60,10 @@ loop:
 					log.Println(err)
 					continue
 				}
-				if strings.ToLower(ndsCellValue) == "нет" && value != "" {
+				if strings.ToLower(strings.TrimSpace(ndsCellValue)) == "нет" {
 					sliseOfRealise[debtValue+" "+strings.ToLower(ndsCellValue)] = value
 				} else {
-					sliseOfSub[debtValue] = value
+					sliseOfRealise[debtValue] = value
 				}
 
 			} else if columnIndex == 0 {
@@ -66,7 +72,7 @@ loop:
 					//log.Println(err)
 					continue
 				}
-				if value == "Итого по договорам:" {
+				if value == "Итого по договорам:" || value == "" {
 					break loop
 
 				}
@@ -82,16 +88,131 @@ loop:
 					log.Println(err)
 					continue
 				}
-				if strings.ToLower(ndsCellValue) == "нет" && value != "" {
-					sliseOfRealise[debtValue+" "+strings.ToLower(ndsCellValue)] = value
+				if strings.ToLower(strings.TrimSpace(ndsCellValue)) == "нет" {
+					sliseOfSub[debtValue+" "+strings.ToLower(ndsCellValue)] = value
 				} else {
 					sliseOfSub[debtValue] = value
+				}
+			} else if columnIndex == 4 {
+				cellOst := newRow.Cells[4]
+				cellOstValue, err := cellOst.FormattedValue()
+				if err != nil {
+					continue
+				}
+				if cellOstValue == "0.00 ₽" || cellOstValue == "" {
+				} else {
+					cellDoc := newRow.Cells[0]
+					cellDocValue, err := cellDoc.FormattedValue()
+					if err != nil {
+						continue
+					}
+					if cellDocValue == "" {
+						break loop
+					}
+					ndsCell := newRow.Cells[1]
+					ndsCellValue, err := ndsCell.FormattedValue()
+					if err != nil {
+						log.Println(err)
+						continue
+					}
+					if strings.ToLower(strings.TrimSpace(ndsCellValue)) == "нет" {
+						ostMapUs[cellOstValue+" "+strings.ToLower(ndsCellValue)] = cellDocValue
+					} else {
+						ostMapUs[cellOstValue] = cellDocValue
+					}
+				}
+			} else if columnIndex == 9 {
+				cellOst := newRow.Cells[9]
+				cellOstValue, err := cellOst.FormattedValue()
+				if err != nil {
+					continue
+				}
+				if cellOstValue == "0.00 ₽" || cellOstValue == "" {
+
+				} else {
+					cellDoc := newRow.Cells[5]
+					cellDocValue, err := cellDoc.FormattedValue()
+					if err != nil {
+						continue
+					}
+					if cellDocValue == "" {
+						break loop
+					}
+					ndsCell := newRow.Cells[6]
+					ndsCellValue, err := ndsCell.FormattedValue()
+					if err != nil {
+						log.Println(err)
+						continue
+					}
+					if strings.ToLower(strings.TrimSpace(ndsCellValue)) == "нет" {
+						ostMap[cellOstValue+" "+strings.ToLower(ndsCellValue)] = cellDocValue
+					} else {
+						ostMap[cellOstValue] = cellDocValue
+					}
+				}
+			} else if columnIndex == 3 {
+				zachetCell := newRow.Cells[3]
+				zachetCellValue, err := zachetCell.FormattedValue()
+				if err != nil {
+					continue
+				}
+				if zachetCellValue != "" {
+					cellDoc := newRow.Cells[0]
+					cellDocValue, err := cellDoc.FormattedValue()
+					if err != nil {
+						continue
+					}
+					if cellDocValue == "" {
+						break loop
+					}
+					ndsCell := newRow.Cells[1]
+					ndsCellValue, err := ndsCell.FormattedValue()
+					if err != nil {
+						log.Println(err)
+						continue
+					}
+					if strings.ToLower(strings.TrimSpace(ndsCellValue)) == "нет" {
+						obyazMapUs[zachetCellValue+" "+strings.ToLower(ndsCellValue)] = cellDocValue
+					} else {
+						obyazMapUs[zachetCellValue] = cellDocValue
+					}
+				} else {
+				}
+			} else if columnIndex == 8 {
+				zachetCell := newRow.Cells[8]
+				zachetCellValue, err := zachetCell.FormattedValue()
+				if err != nil {
+					continue
+				}
+				if zachetCellValue != "" {
+					cellDoc := newRow.Cells[5]
+					cellDocValue, err := cellDoc.FormattedValue()
+					if err != nil {
+						continue
+					}
+					if cellDocValue == "" {
+						break loop
+					}
+					ndsCell := newRow.Cells[6]
+					ndsCellValue, err := ndsCell.FormattedValue()
+					if err != nil {
+						log.Println(err)
+						continue
+					}
+					if strings.ToLower(strings.TrimSpace(ndsCellValue)) == "нет" {
+						obyazMap[zachetCellValue+" "+strings.ToLower(ndsCellValue)] = cellDocValue
+					} else {
+						obyazMap[zachetCellValue] = cellDocValue
+					}
+				} else {
 				}
 			}
 		}
 	}
 	counteragent := cell.String()
 	date := cellDate.String()
+	t, _ := time.Parse("01-02-06", date)
+	dateString := t.Format("02.01.2006")
 	agree := cellAgree.String()
 	doc := docx.NewA4()
 	para2 := doc.AddParagraph().Justification("center")
@@ -100,6 +221,7 @@ loop:
 	para3.AddText("О ЗАЧЕТЕ ВЗАИМНЫХ ТРЕБОВАНИЙ")
 	doc.AddParagraph()
 	para := doc.AddParagraph()
+	//dateFormat := t.Format("02 января 2006 г.")
 	para.AddText(fmt.Sprintf("г. Екатеринбург                                                                                                                      \"%s\"", "дата"))
 	para = doc.AddParagraph()
 	para = doc.AddParagraph()
@@ -110,12 +232,11 @@ loop:
 	para = doc.AddParagraph()
 	para.AddTab()
 	para.AddText(counteragent).Bold()
-	para.AddText(" , действующая на основании ____, с другой стороны,  подписали настоящее Соглашение о нижеследующем:")
+	para.AddText(" , в лице ______________________________ действующая на основании _______________________________________, с другой стороны,  подписали настоящее Соглашение о нижеследующем:")
 	doc.AddParagraph()
 	i := 1
-	t, _ := time.Parse("01-02-06", date)
-	dateString := t.Format("02.01.2006")
 	delete(sliseOfRealise, "")
+	//Нам должны
 	for key, value := range sliseOfRealise {
 		value = addY(value)
 		forNds, money, isNds, _ := niceType(key)
@@ -124,10 +245,11 @@ loop:
 		ndsString = strings.ReplaceAll(ndsString, ".", ",")
 		rublesText, kopecksText := sumToText(ndsString)
 		moneyText, smallMoneyText := sumToText(money)
+		moneyText = firstLetterToUpper(moneyText)
+		rublesText = firstLetterToUpper(rublesText)
 		para = doc.AddParagraph()
 
 		if isNds {
-			//⠀вместо пробела(⠀)
 			para.AddText(strconv.Itoa(i) + ". " + counteragent).Bold()
 			para.AddText("⠀по состоянию на⠀")
 			para.AddText(dateString + "г.").Bold()
@@ -136,7 +258,7 @@ loop:
 			para.AddText("⠀по " + value).Bold()
 			para.AddText(". в размере⠀")
 			para.AddText(money + "⠀").Bold()
-			para.AddText(" руб .(" + moneyText + " " + smallMoneyText + "),в т.ч НДС⠀")
+			para.AddText(" руб. (" + moneyText + " " + smallMoneyText + "),в т.ч НДС⠀")
 			para.AddText(ndsString + "⠀").Bold()
 			para.AddText(" руб. (" + rublesText + " " + kopecksText + "). Срок исполнения обязательств наступил.")
 			para2.AddTab()
@@ -152,7 +274,7 @@ loop:
 			para.AddText("⠀по " + value).Bold()
 			para.AddText(". в размере⠀")
 			para.AddText(money + "⠀").Bold()
-			para.AddText(" руб .(" + moneyText + " " + smallMoneyText + "), без учета НДС. Срок исполнения обязательств наступил.")
+			para.AddText(" руб. (" + moneyText + " " + smallMoneyText + "), без учета НДС. Срок исполнения обязательств наступил.")
 			para2.AddTab()
 			para2 = doc.AddParagraph()
 			para2.AddText("Наличие указанной задолженности подтверждается Актом сверки взаиморасчетов по состоянию на " + dateString + "г.")
@@ -160,6 +282,7 @@ loop:
 		i++
 	}
 	delete(sliseOfSub, "")
+	//Мы должны
 	for key, value := range sliseOfSub {
 		value = addY(value)
 		forNds, money, isNds, _ := niceType(key)
@@ -168,6 +291,8 @@ loop:
 		ndsString = strings.ReplaceAll(ndsString, ".", ",")
 		rublesText, kopecksText := sumToText(ndsString)
 		moneyText, smallMoneyText := sumToText(money)
+		moneyText = firstLetterToUpper(moneyText)
+		rublesText = firstLetterToUpper(rublesText)
 		para = doc.AddParagraph()
 
 		if isNds {
@@ -180,7 +305,7 @@ loop:
 			para.AddText(value).Bold()
 			para.AddText(". в размере⠀")
 			para.AddText(money + "⠀").Bold()
-			para.AddText(" руб .(" + moneyText + " " + smallMoneyText + "),в т.ч НДС⠀")
+			para.AddText(" руб. (" + moneyText + " " + smallMoneyText + "),в т.ч НДС⠀")
 			para.AddText(ndsString + "⠀").Bold()
 			para.AddText(" руб. (" + rublesText + " " + kopecksText + "). Срок исполнения обязательств наступил.")
 			para2.AddTab()
@@ -196,7 +321,7 @@ loop:
 			para.AddText(value).Bold()
 			para.AddText(". в размере⠀")
 			para.AddText(money + "⠀").Bold()
-			para.AddText(" руб .(" + moneyText + " " + smallMoneyText + "), без учета НДС. Срок исполнения обязательств наступил.")
+			para.AddText(" руб. (" + moneyText + " " + smallMoneyText + "), без учета НДС. Срок исполнения обязательств наступил.")
 			para2 = doc.AddParagraph()
 			para2.AddTab()
 			para2.AddText("Наличие указанной задолженности подтверждается Актом сверки взаиморасчетов по состоянию на " + dateString + "г.")
@@ -216,10 +341,11 @@ loop:
 	para.AddText(agreeNdsText).Bold()
 	para.AddText("⠀ руб. (" + moneyText + " " + smallMoneyText + "), в т.ч. НДС⠀")
 	para.AddText(ndsAString + "⠀").Bold()
-	para.AddText(" руб.(" + rublesText + " " + kopecksText + " " + ")")
+	para.AddText(" руб. (" + rublesText + " " + kopecksText + " " + ")")
 	para = doc.AddParagraph()
 	b := 1
-	for key, value := range sliseOfRealise {
+	//Обязательства нам должны
+	for key, value := range obyazMap {
 		value = addY(value)
 		forNds, money, isNds, _ := niceType(key)
 		nds := forNds * 20 / 120
@@ -227,6 +353,8 @@ loop:
 		ndsString = strings.ReplaceAll(ndsString, ".", ",")
 		rublesText, kopecksText := sumToText(ndsString)
 		moneyText, smallMoneyText := sumToText(money)
+		moneyText = firstLetterToUpper(moneyText)
+		rublesText = firstLetterToUpper(rublesText)
 		para = doc.AddParagraph()
 		if isNds {
 			//⠀вместо пробела(⠀)
@@ -239,7 +367,7 @@ loop:
 			para.AddText(value).Bold()
 			para.AddText(". прекращаются в размере⠀")
 			para.AddText(money + "⠀").Bold()
-			para.AddText(" руб .(" + moneyText + " " + smallMoneyText + "),в т.ч НДС⠀")
+			para.AddText(" руб. (" + moneyText + " " + smallMoneyText + "),в т.ч НДС⠀")
 			para.AddText(ndsString + "⠀").Bold()
 			para.AddText(" руб. (" + rublesText + " " + kopecksText + ")с " + dateString + "г.")
 
@@ -253,11 +381,12 @@ loop:
 			para.AddText(value).Bold()
 			para.AddText(". прекращаются в размере⠀")
 			para.AddText(money + "⠀").Bold()
-			para.AddText(" руб .(" + moneyText + " " + smallMoneyText + "), без учета НДС. с " + dateString + "г.")
+			para.AddText(" руб. (" + moneyText + " " + smallMoneyText + "), без учета НДС. с " + dateString + "г.")
 		}
 		b++
 	}
-	for key, value := range sliseOfSub {
+	//Обязательства мы должны
+	for key, value := range obyazMapUs {
 		value = addY(value)
 		forNds, money, isNds, _ := niceType(key)
 		nds := forNds * 20 / 120
@@ -265,6 +394,8 @@ loop:
 		ndsString = strings.ReplaceAll(ndsString, ".", ",")
 		rublesText, kopecksText := sumToText(ndsString)
 		moneyText, smallMoneyText := sumToText(money)
+		moneyText = firstLetterToUpper(moneyText)
+		rublesText = firstLetterToUpper(rublesText)
 		para = doc.AddParagraph()
 		if isNds {
 			para.AddText(strconv.Itoa(i) + "." + strconv.Itoa(b)).Bold()
@@ -276,7 +407,7 @@ loop:
 			para.AddText(value).Bold()
 			para.AddText(". прекращаются в размере⠀")
 			para.AddText(money + "⠀").Bold()
-			para.AddText(" руб .(" + moneyText + " " + smallMoneyText + "),в т.ч НДС⠀")
+			para.AddText(" руб. (" + moneyText + " " + smallMoneyText + "),в т.ч НДС⠀")
 			para.AddText(ndsString + "⠀").Bold()
 			para.AddText(" руб. (" + rublesText + " " + kopecksText + ")с " + dateString + "г.")
 		} else {
@@ -289,13 +420,14 @@ loop:
 			para.AddText(value).Bold()
 			para.AddText(". прекращаются в размере⠀")
 			para.AddText(money + "⠀").Bold()
-			para.AddText(" руб .(" + moneyText + " " + smallMoneyText + "), без учета НДС. с " + dateString + "г.")
+			para.AddText(" руб. (" + moneyText + " " + smallMoneyText + "), без учета НДС. с " + dateString + "г.")
 		}
 		b++
 	}
 	para = doc.AddParagraph()
 	para.AddText(strconv.Itoa(i) + ".⠀").Bold()
 	para.AddText("С момента подписания настоящего Соглашения стороны считают себя свободными от обязательств, в размере, прекращенном зачетом согласно п.10 настоящего соглашения.")
+	i++
 	para = doc.AddParagraph()
 	para = doc.AddParagraph()
 	para.AddText("Настоящее Соглашение составлено в 2-х подлинных экземплярах, по одному для каждой из сторон.")
@@ -303,8 +435,69 @@ loop:
 	para.AddText("Настоящее Соглашение вступает в силу с момента его подписания сторонами.")
 	para = doc.AddParagraph()
 	para = doc.AddParagraph()
-	para.AddText(strconv.Itoa(i) + ".⠀").Bold()
-	para.AddText("После проведения соглашения сохраняется задолженность в пользу  ____  по договору ____ от ___г. в размере ___, без НДС.")
+	//Нам должны
+	for key, value := range ostMap {
+		value = addY(value)
+		forNds, money, isNds, _ := niceType(key)
+		nds := forNds * 20 / 120
+		ndsString := strconv.FormatFloat(nds, 'f', 2, 64)
+		ndsString = strings.ReplaceAll(ndsString, ".", ",")
+		rublesText, kopecksText := sumToText(ndsString)
+		moneyText, smallMoneyText := sumToText(money)
+		moneyText = firstLetterToUpper(moneyText)
+		rublesText = firstLetterToUpper(rublesText)
+		if isNds {
+			para.AddText(strconv.Itoa(i) + ".⠀").Bold()
+			para.AddText("После проведения соглашение сохраняется задолженность в пользу⠀")
+			para.AddText("ЗАО «ЭнергоСтрой»⠀").Bold()
+			para.AddText("по " + value + ". в размере⠀")
+			para.AddText(money).Bold()
+			para.AddText(" руб. (" + moneyText + " " + smallMoneyText + ", в т.ч НДС⠀")
+			para.AddText(ndsString + "⠀").Bold()
+			para.AddText(" руб. (" + rublesText + " " + kopecksText + ")")
+		} else {
+			para.AddText(strconv.Itoa(i) + ".⠀").Bold()
+			para.AddText("После проведения соглашение сохраняется задолженность в пользу⠀")
+			para.AddText("ЗАО «ЭнергоСтрой»⠀").Bold()
+			para.AddText("по " + value + ". в размере⠀")
+			para.AddText(money).Bold()
+			para.AddText(" руб. (" + moneyText + " " + smallMoneyText + "), без НДС.")
+		}
+		i++
+		para = doc.AddParagraph()
+	}
+	// Мы должны
+	for key, value := range ostMapUs {
+		value = addY(value)
+		forNds, money, isNds, _ := niceType(key)
+		nds := forNds * 20 / 120
+		ndsString := strconv.FormatFloat(nds, 'f', 2, 64)
+		ndsString = strings.ReplaceAll(ndsString, ".", ",")
+		rublesText, kopecksText := sumToText(ndsString)
+		moneyText, smallMoneyText := sumToText(money)
+		moneyText = firstLetterToUpper(moneyText)
+		rublesText = firstLetterToUpper(rublesText)
+		if isNds {
+			para.AddText(strconv.Itoa(i) + ".⠀").Bold()
+			para.AddText("После проведения соглашение сохраняется задолженность в пользу⠀")
+			para.AddText(counteragent).Bold()
+			para.AddText("⠀по " + value + ". в размере⠀")
+			para.AddText(money).Bold()
+			para.AddText(" руб. (" + moneyText + " " + smallMoneyText + ", в т.ч НДС⠀")
+			para.AddText(ndsString + "⠀").Bold()
+			para.AddText(" руб. (" + rublesText + " " + kopecksText + ")")
+		} else {
+			para.AddText(strconv.Itoa(i) + ".⠀").Bold()
+			para.AddText("После проведения соглашение сохраняется задолженность в пользу⠀")
+			para.AddText(counteragent).Bold()
+			para.AddText("⠀по " + value + ". в размере⠀")
+			para.AddText(money).Bold()
+			para.AddText(" руб. (" + moneyText + " " + smallMoneyText + "), без НДС.")
+		}
+		i++
+		para = doc.AddParagraph()
+	}
+
 	para = doc.AddParagraph()
 	para = doc.AddParagraph()
 	para = doc.AddParagraph()
@@ -333,6 +526,19 @@ loop:
 	if err != nil {
 		panic(err)
 	}
+
+}
+func firstLetterToUpper(s string) string {
+	if len(s) > 0 {
+		r, size := utf8.DecodeRuneInString(s)
+		if r != utf8.RuneError || size > 1 {
+			lower := unicode.ToUpper(r)
+			if lower != r {
+				s = string(lower) + s[size:]
+			}
+		}
+	}
+	return s
 }
 func sumToText(text string) (string, string) {
 	parts := strings.Split(text, ",")
@@ -345,10 +551,12 @@ func sumToText(text string) (string, string) {
 func niceType(amountStr string) (float64, string, bool, error) {
 	// Убираем символ валюты и разделитель тысяч (если есть)
 	isNds := true
-	amountStr = strings.ReplaceAll(amountStr, "₽", "")
+	amountStr = strings.ReplaceAll(amountStr, " ₽", "")
 	parts := strings.Split(amountStr, " ")
-	if parts[1] == "нет" {
-		isNds = false
+	if len(parts) > 1 {
+		if parts[1] == "нет" {
+			isNds = false
+		}
 	}
 	amountStr = strings.ReplaceAll(amountStr, "нет", "")
 	amountStr = strings.ReplaceAll(amountStr, " ", "")
