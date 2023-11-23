@@ -44,7 +44,7 @@ loop:
 					log.Println(err)
 					continue
 				}
-				if value == "Итого по договорам:" || value == "" {
+				if value == "Итого по договорам:" {
 					break loop
 
 				}
@@ -72,7 +72,7 @@ loop:
 					//log.Println(err)
 					continue
 				}
-				if value == "Итого по договорам:" || value == "" {
+				if value == "Итого по договорам:" {
 					break loop
 
 				}
@@ -258,7 +258,7 @@ loop:
 			para.AddText("⠀по " + value).Bold()
 			para.AddText(". в размере⠀")
 			para.AddText(money + "⠀").Bold()
-			para.AddText(" руб. (" + moneyText + " " + smallMoneyText + "),в т.ч НДС⠀")
+			para.AddText(" руб. (" + moneyText + " " + smallMoneyText + "), в т.ч НДС⠀")
 			para.AddText(ndsString + "⠀").Bold()
 			para.AddText(" руб. (" + rublesText + " " + kopecksText + "). Срок исполнения обязательств наступил.")
 			para2.AddTab()
@@ -305,7 +305,7 @@ loop:
 			para.AddText(value).Bold()
 			para.AddText(". в размере⠀")
 			para.AddText(money + "⠀").Bold()
-			para.AddText(" руб. (" + moneyText + " " + smallMoneyText + "),в т.ч НДС⠀")
+			para.AddText(" руб. (" + moneyText + " " + smallMoneyText + "), в т.ч НДС⠀")
 			para.AddText(ndsString + "⠀").Bold()
 			para.AddText(" руб. (" + rublesText + " " + kopecksText + "). Срок исполнения обязательств наступил.")
 			para2.AddTab()
@@ -337,7 +337,7 @@ loop:
 	rublesText, kopecksText := sumToText(ndsAString)
 	moneyText, smallMoneyText := sumToText(agreeNdsText)
 	para.AddText(strconv.Itoa(i) + ". ").Bold()
-	para.AddText("Стороны пришли к соглашению о зачете взаимных  требований в соответствии со ст. 410 ГК РФ по обязательствам, указанным в п. 1 - 9 настоящего соглашения, в размере⠀")
+	para.AddText("Стороны пришли к соглашению о зачете взаимных  требований в соответствии со ст. 410 ГК РФ по обязательствам, указанным в п. 1 - " + strconv.Itoa(i-1) + " настоящего соглашения, в размере⠀")
 	para.AddText(agreeNdsText).Bold()
 	para.AddText("⠀ руб. (" + moneyText + " " + smallMoneyText + "), в т.ч. НДС⠀")
 	para.AddText(ndsAString + "⠀").Bold()
@@ -367,7 +367,7 @@ loop:
 			para.AddText(value).Bold()
 			para.AddText(". прекращаются в размере⠀")
 			para.AddText(money + "⠀").Bold()
-			para.AddText(" руб. (" + moneyText + " " + smallMoneyText + "),в т.ч НДС⠀")
+			para.AddText(" руб. (" + moneyText + " " + smallMoneyText + "), в т.ч НДС⠀")
 			para.AddText(ndsString + "⠀").Bold()
 			para.AddText(" руб. (" + rublesText + " " + kopecksText + ")с " + dateString + "г.")
 
@@ -407,7 +407,7 @@ loop:
 			para.AddText(value).Bold()
 			para.AddText(". прекращаются в размере⠀")
 			para.AddText(money + "⠀").Bold()
-			para.AddText(" руб. (" + moneyText + " " + smallMoneyText + "),в т.ч НДС⠀")
+			para.AddText(" руб. (" + moneyText + " " + smallMoneyText + "), в т.ч НДС⠀")
 			para.AddText(ndsString + "⠀").Bold()
 			para.AddText(" руб. (" + rublesText + " " + kopecksText + ")с " + dateString + "г.")
 		} else {
@@ -425,9 +425,9 @@ loop:
 		b++
 	}
 	para = doc.AddParagraph()
+	i++
 	para.AddText(strconv.Itoa(i) + ".⠀").Bold()
 	para.AddText("С момента подписания настоящего Соглашения стороны считают себя свободными от обязательств, в размере, прекращенном зачетом согласно п.10 настоящего соглашения.")
-	i++
 	para = doc.AddParagraph()
 	para = doc.AddParagraph()
 	para.AddText("Настоящее Соглашение составлено в 2-х подлинных экземплярах, по одному для каждой из сторон.")
@@ -545,7 +545,7 @@ func sumToText(text string) (string, string) {
 	rublesPart := parts[0]
 	kopecksPart := parts[1]
 	rublesText := numtow.MustString(rublesPart, lang.RU) + " рублей"
-	kopecksText := numtow.MustString(kopecksPart, lang.RU) + " копеек"
+	kopecksText := kopecksPart + " копеек"
 	return rublesText, kopecksText
 }
 func niceType(amountStr string) (float64, string, bool, error) {
